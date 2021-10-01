@@ -26,7 +26,8 @@
     "mpvue": "^2.0.0",
     "mqtt": "^4.1.0",
     "node-sass": "^4.14.1",
-    "sass-loader": "^7.3.1"
+    "sass-loader": "^7.3.1",
+    "vant-weapp": "^0.5.29"
   },
   "devDependencies": {
     "babel-core": "^6.22.1",

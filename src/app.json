@@ -1,11 +1,12 @@
 {
   "pages": [
+    "pages/login/main",
     "pages/index/main",
-    "pages/logs/main"  ],
+    "pages/logs/main"],
   "window": {
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#fff",
-    "navigationBarTitleText": "云岭青年",
+    "navigationBarTitleText": "ewing",
     "navigationBarTextStyle": "black"
   },
   "permission":{
@@ -31,5 +32,13 @@
       "selectedIconPath": "static/tabs/orders-active.png"
     }],
     "position": "bottom"
+  },
+  "usingComponents":{
+    "van-button":"vant-weapp/dist/button/index",
+    "van-field": "vant-weapp/dist/field/index",
+    "van-toast": "vant-weapp/dist/toast/index",
+    "van-dialog": "vant-weapp/dist/dialog/index",
+    "van-stepper": "vant-weapp/dist/stepper/index",
+    "van-notice-bar": "vant-weapp/dist/notice-bar/index"
   }
 }

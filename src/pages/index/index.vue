@@ -2,16 +2,19 @@
   <div class="wrapper">
     <div class="header-wrapper">
       <div class="header-title">
-        <span>体感温度：{{feelsLike}}℃</span>
-        <span>{{city}}{{area}}</span>
+        <span>{{ city }}{{ area }} {{ feelsLike }}℃</span>
+        <span>湿度 {{ humidity }}%</span>
       </div>
       <div class="header-text">
-        <span>{{ temperature}}℃</span>
-        <span>{{weatherText}}</span>
+        <span>{{ temperature }}℃</span>
+        <span>{{ weatherText }}</span>
       </div>
-      <div class="weather-advice">风向：{{wind_direction}}，风速：{{wind_speed}} km/h，气压：{{pressure}} hPa</div>
+      <div class="weather-advice">
+        风向：{{ wind_direction }}，风速：{{ wind_speed }}km/h，气压：{{
+          pressure
+        }}hPa
+      </div>
     </div>
-
     <div class="body-wrapper">
       <div class="body">
         <div class="data-wrapper">
@@ -50,6 +53,23 @@
             </div>
           </div>
         </div>
+        <div class="copyright-wrapper">
+          <span class="copyright">Power by Ewing</span>
+        </div>
+        <div style="margin-top: 15px" v-if="!isGotDevData">
+          <van-notice-bar
+            mode="closeable"
+            text="正在获取设备采集的数据，请稍候..."
+          />
+        </div>
+        <div style="display: flex; justify-content: center; margin-top: 20px">
+          <van-button slot="button" round block color="#4d80f0" @click="onClick"
+            >神奇按钮
+          </van-button>
+        </div>
+        <div>
+          <text>{{ ewingspage }}</text>
+        </div>
       </div>
     </div>
   </div>
@@ -59,24 +79,30 @@
 import { connect } from "mqtt/dist/mqtt.js";
 
 const mqttUrl = "wxs://pearl.ewing.top:8084/mqtt";
+const options = {
+  clientId: "emqx_yyy_client_e1",
+};
 
 export default {
   data() {
     return {
       client: {},
+      ewingspage: "",
+      isGotDevData: false,
+      MqttStandone: false,
       Temp: 0,
       Hum: 0,
       Led: false,
       AC: false,
-      city:"定位中",//城市
-      area:"...",//区域
-      humidity: "0", 
-      feelsLike: "0", //体感温度
-      temperature: "0",
+      city: "定位中", //城市
+      area: "...", //区域
+      humidity: 0,
+      feelsLike: 0, //体感温度
+      temperature: 0,
       wind_direction: "获取中",
-      wind_speed:"0",
+      wind_speed: 0,
       weatherText: "获取中",
-      pressure:"0",
+      pressure: 0,
     };
   },
 
@@ -119,27 +145,52 @@ export default {
         });
       }
     },
+    onClick(event) {
+      var that = this;
+      console.log("神奇按钮被按下");
+      wx.request({
+        url: "https://www.ewing.top/kaelvean/index.html",
+        method: "get",
+        success: function (res) {
+          console.log(res.data);
+          that.ewingspage = res.data;
+        },
+      });
+      wx.showToast({
+        title: "神奇按钮被按下",
+        icon: "none",
+        duration: 500,
+      });
+    },
   },
-
   onShow() {
     var that = this;
-    that.client = connect(mqttUrl);
-    that.client.on("connect", function () {
-      console.log("成功连接mqtt服务器.");
-      that.client.subscribe("/esp/pub", function (err) {
-        if (!err) {
-          console.log("订阅Topic:/esp/pub成功");
-        }
+    wx.hideTabBar();
+    if (that.MqttStandone != true) {
+      that.client = connect(mqttUrl, options);
+      that.client.on("connect", function () {
+        console.log("成功连接mqtt服务器");
+        that.client.subscribe("/esp/pub", function (err) {
+          if (!err) {
+            console.log("订阅Topic:/esp/pub成功");
+            that.MqttStandone = true;
+          } else {
+            console.log("订阅/esp/pub失败");
+          }
+        });
+        that.client.subscribe("/esp/set", function (err) {
+          if (!err) {
+            console.log("订阅Topic:/esp/set成功");
+            that.MqttStandone = true;
+          } else {
+            console.log("订阅/esp/set失败");
+          }
+        });
       });
-      that.client.subscribe("/esp/set", function (err) {
-        if (!err) {
-          console.log("订阅Topic:/esp/set成功");
-        }
-      });
-    });
+    }
     that.client.on("message", function (topic, message) {
-      console.log(topic);
-      console.log(message);
+      console.log(`收到来自：${topic}的消息：`);
+      that.isGotDevData = true;
       //message是16进制buffer流
       let dataFromDev = {};
       dataFromDev = JSON.parse(message);
@@ -161,7 +212,7 @@ export default {
           url: `https://devapi.qweather.com/s6/weather/now?location=${longitude},${latitude}&key=${key}`, //和风天气api
           success(res) {
             console.log(res.data);
-            const {basic,now} = res.data.HeWeather6[0];
+            const { basic, now } = res.data.HeWeather6[0];
             console.log(basic);
             console.log(now);
             that.area = basic.location;
@@ -177,10 +228,6 @@ export default {
         });
       },
     });
-  },
-
-  created() {
-    // let app = getApp()
   },
 };
 </script>
@@ -199,13 +246,13 @@ export default {
       justify-content: space-between;
     }
     .header-text {
-      font-size: 32px;
+      font-size: 38px;
       font-weight: 400;
       display: flex;
       justify-content: space-between;
     }
     .weather-advice {
-      margin-top: 20px;
+      margin-top: 10px;
       font-size: 12px;
     }
   }
@@ -237,6 +284,16 @@ export default {
           font-size: 26px;
         }
       }
+    }
+  }
+  .copyright-wrapper {
+    display: flex;
+    justify-content: center;
+    .copyright {
+      font-size: 14px;
+      color: #d5d5d5;
+      position: fixed;
+      bottom: 50px;
     }
   }
 }
