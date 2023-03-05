@@ -1,6 +1,7 @@
-# agiot
+# 项目名称agiot
 
-> a iot project
+> 基于Vue的IoT小程序
+> 最初于2021年在微信小程序开发
 
 ## Build Setup
 
